@@ -1,0 +1,33 @@
+{
+  "name": "workers",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "cd dist && node index.js"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^1.2.19",
+    "@anush008/tokenizers": "^0.0.0",
+    "@google/genai": "^1.7.0",
+    "@huggingface/transformers": "^3.1.2",
+    "@supabase/supabase-js": "^2.50.0",
+    "ai": "^4.3.16",
+    "apify-client": "^2.12.5",
+    "dotenv": "^16.5.0",
+    "graphile-worker": "^0.16.6",
+    "ollama": "^0.5.16",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
