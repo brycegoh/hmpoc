@@ -1,169 +1,192 @@
-# Context
+# P2P Skill Exchange Platform (Like Tinder but for skills)
 
-Tasked to build a P2P skill exchange platform. Its essentially tinder for skill sets.
+## Overview
 
-# How to start
-- Request for `.api.env` and `.workers.env`
-- Place them at the root
-- Run `docker-compose up --build`
-- Visit `http://localhost:3001/`
+This project implements a peer-to-peer skill exchange platform that connects users based on complementary skills they can teach and learn. The platform uses an intelligent matching algorithm combining traditional filtering with semantic analysis to create meaningful connections between learners and teachers.
 
-NOTE: Since I am using the free tier of Supabase, they might pause the project after awhile. I will try my best to keep it running but just let me know if its paused.
+## Quick Start
 
-# Technologies used (brief list)
+### Prerequisites
+- Request `.api.env` and `.workers.env` configuration files
+- Place them in the project root directory
 
-Backend:
-- Supabase
-  - For PostgresDB
-  - Built-in authentication and real-time functionalities
-  - Free while we test for PMF
+### Running the Application
+```bash
+docker-compose up --build
+```
+Access the application at `http://localhost:3001/`
 
-- Graphile workers
-  - Durable queue for postgres
+> **Note:** This project uses Supabase's free tier, which may pause after periods of inactivity. Please notify us if you encounter connection issues.
 
-Frontend:
-- React, tailwind
+> **Note:** I am using free credits for Linkedin extraction, Gemini and google text embedding models. So, I might run out of free credits... Just ping me over email lol.
 
-# Feature set to focus on
+## Technology Stack
 
-This section I will note down my thought process behind the features I decided to put thought into and build it.
+### Backend
+- **Supabase**: PostgreSQL database with built-in authentication and real-time capabilities
+- **Graphile Workers**: Durable job queue system using PostgreSQL
+- **Node.js/TypeScript**: API server implementation
 
-## Caveat 
+### Frontend
+- **React**: User interface framework
+- **Tailwind CSS**: Styling and responsive design
 
-To be honest, in the context of a startup, a more MVP to test market demand would be a nice landing page with a waitlist (for example, probably can make it even more manual), not to build out the actual product. But, for the purposes of this task, let's think through it.
+### External Services
+- **Apify**: LinkedIn profile data extraction
+- **Google Gemini**: Profile summarization
+- **Google Text-Embedding-004**: Vector embeddings for semantic matching
 
-## What is important
+## Product Strategy & Feature Prioritization
 
-TLDR, the most important and non-trivial portion is the matching algorithm. Everything else such as authentication, UI to view matches, UI for messaging or video call, etc are all not priority in terms of engineering as they are mostly *solved* problems, meaning there are existing off the shelf solutions for it and no much brain power has to be used for it (not as much as the matching algo at least)
+### MVP Philosophy
 
-The matching algorithm is also non-trivial because it is core to the product experience. If TikTok launched with a half baked matching algorithm, their retention would suffer. This is navbar bg-white shadow-lg to product and business standpoint.
+While a traditional MVP for market validation might focus on a landing page with waitlist functionality, this POC demonstrates the core technical challenges and product experience of a skill exchange platform.
 
-# Matching Algorithm
+### Core Focus: Matching
 
-So, I made the decision to build out the matching algorithm in which these are the requirements I set out for myself:
+The matching algorithm represents the most critical and technically challenging component of the platform. Unlike standard features such as authentication, messaging, or video calls (which have established solutions), the matching algorithm directly impacts:
 
-## Requirements
+- **User Retention**: Poor matches lead to user churn
+- **Product Differentiation**: Unique matching capabilities create competitive advantage
+- **Technical Complexity**: Requires custom logic combining multiple data sources and ranking factors
 
-1. It cannot be some complex ML pipeline (its only a POC and I don't work for openai so I can't do this within a day LOL).
-2. The baseline requirement is that both users must have skills they can exchange (bi-directional).
-3. Whatever scoring we use must be dynamically added up and not some cached score, as the scoring algorithm will almost 100% change in the future. This also allows some A/B testing if we ever want to.
-4. Will not use any graph databases due to lack of familiarity and time.
-5. Must take into account some semantic information and not just matching skills.
+## Matching Algorithm Architecture
 
-## High level overview of what we can do
+### Design Requirements
 
-Given these requirements, we can split the matching algorithm into 2 segments: `Search` and `Rerank`. Since we always want users to have exchangeable skills, we can use that criteria to reduce the user pool that has to be rerank-ed.
+1. **Simplicity**: Avoid complex ML pipelines unsuitable for POC timeframes
+2. **Bidirectional Compatibility**: Ensure mutual skill exchange potential
+3. **Dynamic Scoring and extensibility**: Real-time score calculation enabling A/B testing and algorithm iteration
+4. **Standard Infrastructure**: Use familiar technologies (PostgreSQL) rather than specialized graph databases
+5. **Semantic Understanding**: Incorporate meaning beyond exact skill name matches
 
-### Search Segment
+### Two-Phase Approach: Search + Rerank
 
-For search we can just make use of `user_skills` table and calculcate the amount of overlap. Its just an SQL query.
+#### Phase 1: Search (Candidate Filtering)
+- **Objective**: Identify users with mutual skill exchange potential
+- **Implementation**: SQL-based queries on `user_skills` table
+- **Criteria**: Bidirectional skill compatibility (A teaches what B wants to learn, B teaches what A wants to learn)
 
-### Rerank Segment
+#### Phase 2: Rerank (Quality Scoring)
+Advanced scoring system combining multiple factors:
 
-This is where it gets interesting since we can determine what to use to create a score.
+| Factor | Weight | Description | Business Logic |
+|--------|--------|-------------|----------------|
+| **Mutual Skills** | 35% | Normalized bidirectional skill overlap | Core requirement for platform value |
+| **Reliability** | 25% | 30-day response rate (accepted + completed / offered) | Proxy for user engagement and follow-through |
+| **Timezone Overlap** | 15% | Waking hours intersection between users | Practical scheduling compatibility |
+| **Age Affinity** | 10% | Learned preference from swipe history | Personalized matching based on user behavior |
+| **Gender Match** | 5% | Binary same-gender preference | Social comfort factor |
+| **LinkedIn Similarity** | 10% | Semantic profile similarity via embeddings | Professional and interest alignment |
 
-Given the requirements we set out, I decided to create a score using:
-- **Mutual Skills (35%)** - Normalized overlap score from search phase (bidirectional skill compatibility)
-  - The base requirement of exchangeable skills
-- **Reliability (25%)** - Candidate's response rate based on 30-day swipe history (accepted + completed / offered)
-  - Used as a proxy for how active and willing the user is to accept offers
-- **Timezone Overlap (15%)** - Hours of overlap in waking hours between viewer and candidate timezones
-  - Users with same timezone have a higher chance of actually meeting up
-- **Age Affinity (10%)** - Learned preference based on viewer's historical accept rate per age gap bucket
-  - Based on swipe history, if user has a preference for a certain age, this is used as a proxy
-- **Gender Match (5%)** - Simple binary match (1 if same gender, 0 otherwise)
-  - We assume that users prefer meeting up with users of same gender.
-- **LinkedIn Embedding Similarity (10%)** - Semantic similarity between LinkedIn profiles using vector embeddings
-  - This will be explained below.
+### Semantic Matching via LinkedIn Embeddings
 
-#### LinkedIn Embedding
+#### Challenge
+Traditional recommendation systems require extensive ML infrastructure and training data. For early-stage products, this represents significant technical overhead without proven product-market fit.
 
-I set out to have a requirement of matching based on *semantic information*, this is usually done with some custom reccomendation ML engine which a startup cannot afford to waste time on especially without PMF. Therefore since we have RAG technology using LLMs, we can essentially make use of it to have some semantic measurement. 
+#### Solution: RAG-Powered Semantic Analysis
+Three-stage pipeline with fault tolerance:
 
-Therefore, I made a pipeline that is split into 3 stages: `extraction` -> `summarisation` -> `vectorisation`. Since this involves external APIs and we would prefer this pipeline to be resistent to both internal and external server issues. For example, if some LLM api goes down after extraction then we lose it, so some persistence is needed. Therefore, I decided to add a queue and to make it simple without any trouble, we can just use postgres as the queue using `graphile workers`.
+1. **Extraction**: Apify scrapes LinkedIn profile data
+2. **Summarization**: Google Gemini generates structured summaries
+3. **Vectorization**: Google Text-Embedding-004 creates searchable embeddings
 
-For our workflow, I used `apify` for extraction, `Google Gemini` for summarisation and `Google's text-embedding-004` for getting the vector.
+**Resilience Design**: Each stage persists data to PostgreSQL via Graphile Workers queue, ensuring recovery from external API failures.
 
-# User journey built and roadmap
+## Current Implementation Status
 
-## What is done
+### ✅ Completed Features
+- **Authentication System**: User registration and login
+- **Onboarding Flow**: Skill input and profile creation
+- **Matching Interface**: Swipe-based match selection
+- **Core Algorithm**: Bidirectional skill matching with scoring
 
-- Basic auth with a onboarding form
-- Getting matches and selecting "yes / no"
+### 🚧 Development Roadmap
 
-## Roadmap
+#### Phase 1: Core User Experience
+1. **Offer Management UI**: Interface for users to view and respond to incoming match requests
+2. **Meeting Coordination**: 
+   - **Option A**: Integrate third-party scheduling (risk: user retention loss)
+   - **Option B**: In-app messaging system (recommended for retention)
+3. **Infinite scrolling**:
+   - Currently, we get candidates batch by batch via pagiantion, but we only get the next batch on the last option.
+   - Ideally, we get the next batch as user is finishing up the current batch. This will simulate infinite swiping.
 
-In order of priority:
-1. UI to show offers that the user got
-2. Can we defer the arrangement of a meeting to another app? 
-  - This needs to be discussed as the moment the user leaves the app, we lose user retention on our app after the match happens
-  - If we want to not lose the user then in-app messaging system would be priority 2
-3. Make the linkedin extraction part of the sign up flow
-  - An existing issue is that the getting of embedding is in a race condition with the user completing the onboarding. 
-  - Ideally we have some sort of minimum wait time but should not force the user to wait in case of any external service downtime or what not
-  - With that, we can do best-effort in terms of pre-filling the onboarding form
-  - This is also very powerful as we can summarise the user's characteristics and make that part of the onboarding flow as well
-4. Improve UI design and test internally
-5. Add some monitoring stuff
-  - `Amplitude`, `Posthog`, `Clarity` or `Sentry` for frontend
-  - If someone in the team is familiar and can quickly setup then backend can resort to `prometheus and grafana` 
-    - If not, then just add some slack or telegram notification on error. Make use of the queue so we avoid rate limits etc.
-5. Launch publicly
-6. Once launch, we can expand the RAG flow to instagram or whatever so that we get more meaningful data on the user.
+#### Phase 2: Enhanced Onboarding
+4. **LinkedIn Integration**: 
+   - Incorporate profile extraction into signup flow
+   - Pre-populate user skills and characteristics
+   - Handle async processing with graceful fallbacks
 
+#### Phase 3: Production Readiness
+5. **UI/UX Polish**: Enhanced design and internal testing
+6. **Monitoring & Analytics**:
+   - **Frontend**: Amplitude, PostHog, or Microsoft Clarity
+   - **Backend**: Prometheus/Grafana or Slack/Telegram alerts
+7. **Public Launch!!!!!**: Beta release with user acquisition
 
-# Table structure
+#### Phase 4: Platform Expansion
+8. **Multi-Platform RAG**: Extend semantic analysis to Instagram and other social platforms
 
-### `users`
-- `id` (UUID, PK) - Unique user identifier
-- `first_name`, `last_name` (TEXT) - User name components
-- `birthdate` (DATE) - User's date of birth
-- `gender` (CHAR(1)) - M/F/O gender options
-- `tz_name` (TEXT) - Timezone (defaults to 'Asia/Singapore')
-- `created_at`, `updated_at` (TIMESTAMPTZ) - Record timestamps
+## Database Schema
 
-### `skills`
-- `id` (UUID, PK) - Unique skill identifier  
-- `name` (TEXT, UNIQUE) - Skill name (e.g., "Python", "Guitar", "Cooking")
+### Core Tables
 
-### `user_skills`
-- `id` (BIGSERIAL, PK) - Auto-increment primary key
-- `user_id` (UUID, FK) - References users table
-- `skill_id` (UUID, FK) - References skills table
-- `role` (skill_role ENUM) - Either 'teach' or 'learn'
-- `level` (TEXT) - Skill proficiency level
-- Unique constraint on (user_id, skill_id, role)
+#### `users`
+```sql
+- id (UUID, PK)              -- Unique identifier
+- first_name, last_name      -- User identity
+- birthdate (DATE)           -- Age calculation
+- gender (CHAR(1))           -- M/F/O options
+- tz_name (TEXT)             -- Timezone (default: 'Asia/Singapore')
+- created_at, updated_at     -- Audit timestamps
+```
 
-### `swipe_history`
-- `id` (BIGSERIAL, PK) - Auto-increment primary key
-- `viewer_id` (UUID, FK) - User who initiated the swipe
-- `candidate_id` (UUID, FK) - User who was swiped on
-- `status` (match_status ENUM) - 'declined', 'offered', or 'accepted'
-- `created_at` (TIMESTAMPTZ) - When the swipe occurred
+#### `skills`
+```sql
+- id (UUID, PK)              -- Unique identifier
+- name (TEXT, UNIQUE)        -- Skill name (e.g., "Python", "Guitar")
+```
 
-### `linkedin_data`
-- `id` (UUID, PK) - Unique record identifier
-- `user_id` (UUID, FK) - References users table (one-to-one relationship)
-- `linkedin_url` (TEXT) - LinkedIn profile URL
-- `profile_data` (JSONB) - Raw LinkedIn profile data
-- `profile_summary` (JSONB) - AI-generated profile summary
-- `embedding` (vector(768)) - Vector embedding for similarity matching
-- `state` (TEXT) - Processing state: 'in_queue', 'extracting', 'summarising', 'embedding', 'completed'
-- `extraction_date`, `created_at`, `updated_at` (TIMESTAMPTZ) - Timestamps
+#### `user_skills`
+```sql
+- user_id (UUID, FK)         -- References users
+- skill_id (UUID, FK)        -- References skills
+- role (ENUM)                -- 'teach' | 'learn'
+- level (TEXT)               -- Proficiency level
+- UNIQUE(user_id, skill_id, role)
+```
 
-## Key Functions
+#### `swipe_history`
+```sql
+- viewer_id (UUID, FK)       -- User initiating swipe
+- candidate_id (UUID, FK)    -- Target user
+- status (ENUM)              -- 'declined' | 'offered' | 'accepted'
+- created_at                 -- Interaction timestamp
+```
 
-### `find_mutual_skill_candidates(viewer_id, limit)`
-Returns potential matches where both users have complementary skills:
-- Finds candidates who teach skills the viewer wants to learn
-- Finds candidates who want to learn skills the viewer can teach
-- Excludes users already swiped on in the last 7 days
-- Returns overlap scores based on mutual skill compatibility
+#### `linkedin_data`
+```sql
+- user_id (UUID, FK)         -- One-to-one with users
+- linkedin_url (TEXT)        -- Profile URL
+- profile_data (JSONB)       -- Raw scraped data
+- profile_summary (JSONB)    -- AI-generated summary
+- embedding (vector(768))    -- Semantic embeddings
+- state (TEXT)               -- Processing status
+```
 
-### `get_linkedin_embedding_similarities(viewer_id, candidate_ids[])`
-Calculates LinkedIn profile similarity using vector embeddings:
-- Uses cosine similarity between profile embeddings
-- Normalizes scores to [0, 1] range
-- Returns 0.5 (neutral) for users without LinkedIn data
+### Key Database Functions
 
+#### `find_mutual_skill_candidates(viewer_id, limit)`
+**Purpose**: Primary search function for compatible users
+**Logic**:
+- Identifies bidirectional skill compatibility
+- Excludes recent swipe history (7-day window)
+- Returns overlap scores for reranking
 
+#### `get_linkedin_embedding_similarities(viewer_id, candidate_ids[])`
+**Purpose**: Semantic similarity calculation
+**Implementation**:
+- Cosine similarity between profile embeddings
+- Normalized scores [0, 1]
+- Defaults to 0.5 for missing data
