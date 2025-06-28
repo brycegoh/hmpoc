@@ -20,6 +20,15 @@ Access the application at `http://localhost:3001/`
 
 > **Note:** I am using free credits for Linkedin extraction, Gemini and google text embedding models. So, I might run out of free credits... Just ping me over email lol.
 
+# Example Usage
+
+Here's a demonstration of the platform in action:
+
+<video src="assets/poc_recording.mov" controls width="100%">
+  Your browser does not support the video tag. 
+  <a href="assets/poc_recording.mov">Download the demo video</a>
+</video>
+
 ## Technology Stack
 
 ### Backend
