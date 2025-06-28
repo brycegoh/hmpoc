@@ -124,11 +124,14 @@ Three-stage pipeline with fault tolerance:
    - Currently, we get candidates batch by batch via pagiantion, but we only get the next batch on the last option.
    - Ideally, we get the next batch as user is finishing up the current batch. This will simulate infinite swiping.
 
-#### Phase 2: Enhanced Onboarding
+#### Phase 2: Fix critical race condition
 4. **LinkedIn Integration**: 
-   - Incorporate profile extraction into signup flow
-   - Pre-populate user skills and characteristics
-   - Handle async processing with graceful fallbacks
+   - Currently, there is a race contion between the user getting top N candidates and the vector embedding pipeline being done. 
+   - Ideally, the user should wait with a certain timeout for the embedding pipeline to be done. 
+   - However, due to time, this was not done.
+   - Therefore, becore launch we should get this done since the linkedin extraction pipeline can be:
+      - incorporated into onboarding flow to pre-fill form
+      - Pre-populate user skills and characteristics of the user
 
 #### Phase 3: Production Readiness
 5. **UI/UX Polish**: Enhanced design and internal testing. Also note the `ogimage` `logo.ico` and other small details.
