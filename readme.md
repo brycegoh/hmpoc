@@ -48,15 +48,19 @@ Here's a demonstration of the platform in action:
 
 ### MVP Philosophy
 
-While a traditional MVP for market validation might focus on a landing page with waitlist functionality, this POC demonstrates the core technical challenges and product experience of a skill exchange platform.
+To be honest, if this was my startup, a POC would be a nice looking landing page with clear value prop and a waitlist functionality. This way we test and validate before we build.
+
+However for the purposes of this POC, I will note my thoughts down below in terms of features.
 
 ### Core Focus: Matching
 
-The matching algorithm represents the most critical and technically challenging component of the platform. Unlike standard features such as authentication, messaging, or video calls (which have established solutions), the matching algorithm directly impacts:
+The matching algorithm represents the most critical and technically challenging component of the platform. Unlike standard features such as authentication, messaging, or video calls (which are what I call "solved problems" and already have established solutions), the matching algorithm does not and yet it directly impacts:
 
 - **User Retention**: Poor matches lead to user churn
 - **Product Differentiation**: Unique matching capabilities create competitive advantage
 - **Technical Complexity**: Requires custom logic combining multiple data sources and ranking factors
+
+Therefore, from an engineering perspective, the matching algorithm is the blocker whereas the other components are most likely known to the other team members and relatively easy to divide and conquer.
 
 ## Matching Algorithm Architecture
 
