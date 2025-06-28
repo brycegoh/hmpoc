@@ -119,7 +119,7 @@ Three-stage pipeline with fault tolerance:
    - Handle async processing with graceful fallbacks
 
 #### Phase 3: Production Readiness
-5. **UI/UX Polish**: Enhanced design and internal testing
+5. **UI/UX Polish**: Enhanced design and internal testing. Also note the `ogimage` `logo.ico` and other small details.
 6. **Monitoring & Analytics**:
    - **Frontend**: Amplitude, PostHog, or Microsoft Clarity
    - **Backend**: Prometheus/Grafana or Slack/Telegram alerts
