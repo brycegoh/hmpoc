@@ -125,8 +125,9 @@ Three-stage pipeline with fault tolerance:
    - **Backend**: Prometheus/Grafana or Slack/Telegram alerts
 7. **Public Launch!!!!!**: Beta release with user acquisition
 
-#### Phase 4: Platform Expansion
-8. **Multi-Platform RAG**: Extend semantic analysis to Instagram and other social platforms
+#### Phase 4: Misc (not important)
+10. **Clean up code**: There are some oppotunites to clean up repeated code in `workers` but due to time I shall postpone this.
+9. **Multi-Platform RAG**: Extend semantic analysis to Instagram and other social platforms
 
 ## Database Schema
 
