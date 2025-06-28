@@ -63,7 +63,7 @@ The matching algorithm represents the most critical and technically challenging 
 ### Two-Phase Approach: Search + Rerank
 
 #### Phase 1: Search (Candidate Filtering)
-- **Objective**: Identify users with mutual skill exchange potential
+- **Objective**: Identify users with mutual skill exchange potential as well as if they have been shown to the user over the past 7 days.
 - **Implementation**: SQL-based queries on `user_skills` table
 - **Criteria**: Bidirectional skill compatibility (A teaches what B wants to learn, B teaches what A wants to learn)
 
