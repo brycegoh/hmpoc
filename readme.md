@@ -16,7 +16,7 @@ docker-compose up --build
 ```
 Access the application at `http://localhost:3001/`
 
-> **Note:** This project uses Supabase's free tier, which may pause after periods of inactivity. Please notify us if you encounter connection issues.
+> **Note:** This project uses Supabase's free tier, which may pause after periods of inactivity. Please notify me if you encounter connection issues.
 
 > **Note:** I am using free credits for Linkedin extraction, Gemini and google text embedding models. So, I might run out of free credits... Just ping me over email lol.
 
