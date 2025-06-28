@@ -127,7 +127,10 @@ Three-stage pipeline with fault tolerance:
 #### Phase 2: Fix critical race condition
 4. **LinkedIn Integration**: 
    - Currently, there is a race contion between the user getting top N candidates and the vector embedding pipeline being done. 
+      - When user does onboarding form, we trigger the pipeline that `extracts -> summarize -> vectorize`
+      - Right now there is no waiting screen for that pipeline to be done before the user proceeds
    - Ideally, the user should wait with a certain timeout for the embedding pipeline to be done. 
+      - We need a timeout here as we don't want users to be stuck waiting if any external service goes down.
    - However, due to time, this was not done.
    - Therefore, becore launch we should get this done since the linkedin extraction pipeline can be:
       - incorporated into onboarding flow to pre-fill form
