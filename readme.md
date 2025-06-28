@@ -24,10 +24,7 @@ Access the application at `http://localhost:3001/`
 
 Here's a demonstration of the platform in action:
 
-<video src="assets/poc_recording.mov" controls width="100%">
-  Your browser does not support the video tag. 
-  <a href="assets/poc_recording.mov">Download the demo video</a>
-</video>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/tYsux1_YqZo?si=V5OYK8PgeI3BU8df" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Technology Stack
 
